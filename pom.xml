@@ -8,7 +8,7 @@
         <version>3.0.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.para</groupId>
+    <groupId>io.github.paran0idox</groupId>
     <artifactId>value-object-injector-spring-boot-starter</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>value-object-injector-springboot-starter</name>
