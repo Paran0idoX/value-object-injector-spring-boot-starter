@@ -32,8 +32,6 @@ public class ValueObjectInjectorUtil {
     }
 
     public static void valueInject(Field injectedField, Field valueField, Object injectedObject, Object valueObject){
-        injectedField.setAccessible(true);
-        valueField.setAccessible(true);
         try {
             Object value = valueField.get(valueObject);
             injectedField.set(injectedObject, value);

@@ -33,18 +33,25 @@ public class FieldConnection{
         if (directInject){
             ValueObjectInjectorUtil.valueInject(injectFieldList.get(0), rootField, model, root);
         } else {
-            rootField.setAccessible(true);
             try {
                 Object rootFieldValue = rootField.get(root);
                 if (rootFieldValue == null){
                     return;
                 }
                 for (Map.Entry<Field, Field> entry : rootToModelFieldMap.entrySet()) {
-                    entry.getValue().setAccessible(true);
-                    entry.getKey().setAccessible(true);
-                    entry.getValue().set(model, entry.getKey().get(rootFieldValue));
+                    Field valueObjectField = entry.getKey();
+                    Field modelField = entry.getValue();
+                    Object value = null;
+                    if (Enum.class.isAssignableFrom(valueObjectField.getType())){
+                        value = ValueObjectInjectorUtil.getInjectValueProviderById(valueObjectField.getType(), InjectValue.DEFAULT_VALUE_ID).get(rootFieldValue);
+                    }else {
+                        value = valueObjectField.get(rootFieldValue);
+                    }
+                    modelField.set(model, value);
                 }
             } catch (IllegalAccessException e) {
+                log.error(e.getMessage());
+            } catch (NoSuchFieldException e) {
                 log.error(e.getMessage());
             }
         }
@@ -54,12 +61,10 @@ public class FieldConnection{
         if (model == null || root == null){
             return;
         }
-        injectFieldList.forEach(field -> field.setAccessible(true));
         if (directInject){
             ValueObjectInjectorUtil.valueInject(rootField, injectFieldList.get(0), root, model);
         } else {
             try {
-                rootField.setAccessible(true);
                 if (Enum.class.isAssignableFrom(rootField.getType())){
                     try {
                         Enum enumValue = ValueObjectInjectorUtil.getEnumObjectByValue(
@@ -74,9 +79,19 @@ public class FieldConnection{
                     try {
                         Object valueObject = constructor.newInstance();
                         for (Map.Entry<Field, Field> entry : inverseMap.entrySet()) {
-                            entry.getKey().setAccessible(true);
-                            entry.getValue().setAccessible(true);
-                            entry.getValue().set(valueObject, entry.getKey().get(model));
+                            Field valueObjectField = entry.getValue();
+                            Field modelField = entry.getKey();
+                            if (Enum.class.isAssignableFrom(valueObjectField.getType())){
+                                try {
+                                    Enum enumValue = ValueObjectInjectorUtil.getEnumObjectByValue(
+                                            (Class<? extends Enum>) valueObjectField.getType(), modelField.get(model));
+                                    valueObjectField.set(valueObject, enumValue);
+                                } catch (NoSuchFieldException | IllegalAccessException e) {
+                                    e.printStackTrace();
+                                }
+                            }else {
+                                valueObjectField.set(valueObject, modelField.get(model));
+                            }
                         }
                         rootField.set(root, valueObject);
                     } catch (Exception e) {
@@ -95,15 +110,19 @@ public class FieldConnection{
         this.directInject = directInject;
         this.rootClass = rootClass;
         this.modelClass = modelClass;
+        this.rootField.setAccessible(true);
         if (!directInject){
             rootToModelFieldMap = HashBiMap.create(injectFieldList.size());
             for (Field field : injectFieldList) {
                 Field valueObjectField = ValueObjectInjectorUtil.getInjectValueProviderById(rootField.getType(),
                         AnnotatedElementUtils.isAnnotated(field, InjectInfo.class) ? field.getAnnotation(InjectInfo.class).injectValueId() : InjectValue.DEFAULT_VALUE_ID);
+                field.setAccessible(true);
+                valueObjectField.setAccessible(true);
                 rootToModelFieldMap.put(valueObjectField, field);
             }
             inverseMap = rootToModelFieldMap.inverse();
         }else {
+            injectFieldList.get(0).setAccessible(true);;
             rootToModelFieldMap = null;
             inverseMap = null;
         }
