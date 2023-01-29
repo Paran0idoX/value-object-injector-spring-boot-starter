@@ -41,17 +41,14 @@ public class FieldConnection{
                 for (Map.Entry<Field, Field> entry : rootToModelFieldMap.entrySet()) {
                     Field valueObjectField = entry.getKey();
                     Field modelField = entry.getValue();
-                    Object value = null;
-                    if (Enum.class.isAssignableFrom(valueObjectField.getType())){
-                        value = ValueObjectInjectorUtil.getInjectValueProviderById(valueObjectField.getType(), InjectValue.DEFAULT_VALUE_ID).get(rootFieldValue);
-                    }else {
-                        value = valueObjectField.get(rootFieldValue);
+                    Object value = valueObjectField.get(rootFieldValue);
+                    if (value != null && Enum.class.isAssignableFrom(valueObjectField.getType())){
+                        value = ValueObjectInjectorUtil.getInjectValueProviderById(valueObjectField.getType(), InjectValue.DEFAULT_VALUE_ID)
+                                .get(value);
                     }
                     modelField.set(model, value);
                 }
-            } catch (IllegalAccessException e) {
-                log.error(e.getMessage());
-            } catch (NoSuchFieldException e) {
+            } catch (IllegalAccessException | NoSuchFieldException e) {
                 log.error(e.getMessage());
             }
         }

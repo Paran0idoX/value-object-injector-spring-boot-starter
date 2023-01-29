@@ -25,6 +25,7 @@ public class ValueObjectInjectorUtil {
         for (Field declaredField : declaredFields) {
             int modelInjectValueId = declaredField.getAnnotation(InjectValue.class).value();
             if (modelInjectValueId == injectValueId){
+                declaredField.setAccessible(true);
                 return declaredField;
             }
         }
