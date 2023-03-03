@@ -29,7 +29,11 @@ public class ValueObjectInjectorUtil {
                 return declaredField;
             }
         }
-        throw new NoSuchFieldException("modelFieldValueObject doesn't have such injectValue");
+        NoSuchFieldException noSuchFieldException =
+                new NoSuchFieldException("modelFieldValueObject doesn't have such injectValue");
+        log.error("[ValueObjectInjector] modelFieldValueObject doesn't have such injectValue. ValueObjectClass: {}, injectValueId: {}",
+                valueObjectClass.getCanonicalName(), injectValueId);
+        throw noSuchFieldException;
     }
 
     public static void valueInject(Field injectedField, Field valueField, Object injectedObject, Object valueObject){

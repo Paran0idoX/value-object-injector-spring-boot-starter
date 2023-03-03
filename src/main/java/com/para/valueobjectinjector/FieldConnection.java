@@ -109,6 +109,7 @@ public class FieldConnection{
         this.modelClass = modelClass;
         this.rootField.setAccessible(true);
         if (!directInject){
+
             rootToModelFieldMap = HashBiMap.create(injectFieldList.size());
             for (Field field : injectFieldList) {
                 Field valueObjectField = ValueObjectInjectorUtil.getInjectValueProviderById(rootField.getType(),
@@ -119,7 +120,7 @@ public class FieldConnection{
             }
             inverseMap = rootToModelFieldMap.inverse();
         }else {
-            injectFieldList.get(0).setAccessible(true);;
+            injectFieldList.get(0).setAccessible(true);
             rootToModelFieldMap = null;
             inverseMap = null;
         }
